@@ -4,6 +4,7 @@ PM/서비스기획 취준생을 위한 매일 반복형 역기획 학습 앱. �
 
 **🔗 Live: [reverseengineeringstudyapp.vercel.app](https://reverseengineeringstudyapp.vercel.app)**
 **📝 Maker story: [Disquiet 포스트](https://disquiet.io/products/0f22c5c3-7692-448e-85d8-485b7a8598f0)**
+**📓 Case study: [8일의 기록 — 시장조사부터 반응 0건까지](https://claude.ai/code/artifact/5db5e871-4dd1-40d7-bfb0-1e003d6f33b6)**
 
 ## 배경
 
