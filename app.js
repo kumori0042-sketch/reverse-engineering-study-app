@@ -49,8 +49,8 @@
   (function renderHeroTeaser(){
     const company = getTodayCompany();
     const cut = getTodayCut(company);
-    document.getElementById("hero-cut").textContent = "“" + cut + "”";
-    document.getElementById("hero-company").textContent = "— " + company.name + " (" + company.category + ")";
+    document.getElementById("hero-cut").textContent = "“" + T(cut) + "”";
+    document.getElementById("hero-company").textContent = "— " + T(company.name) + " (" + T(company.category) + ")";
   })();
 
   // ---------- 온보딩 ----------
@@ -95,16 +95,16 @@
 
     btn.disabled = true;
     const original = btn.textContent;
-    btn.textContent = "확인 중...";
-    showStatus(statusEl, "키가 유효한지 확인하고 있어요...", false);
+    btn.textContent = T("확인 중...");
+    showStatus(statusEl, T("키가 유효한지 확인하고 있어요..."), false);
 
     try{
-      await callGemini(key, "당신은 연결 테스트 중입니다.", "'연결 확인'이라고만 답하세요.");
+      await callGemini(key, T("당신은 연결 테스트 중입니다."), T("'연결 확인'이라고만 답하세요."));
       localStorage.setItem(LS.apiKey, key);
-      showStatus(statusEl, "키가 정상 확인됐어요.", false);
+      showStatus(statusEl, T("키가 정상 확인됐어요."), false);
       finishOnboarding();
     }catch(err){
-      showStatus(statusEl, "키를 확인하지 못했어요: " + err.message + " — 키를 다시 확인하시거나 '나중에 하기'를 눌러주세요.", true);
+      showStatus(statusEl, T("키를 확인하지 못했어요: {0} — 키를 다시 확인하시거나 '나중에 하기'를 눌러주세요.", err.message), true);
     }finally{
       btn.disabled = false;
       btn.textContent = original;
@@ -139,19 +139,19 @@
   function renderTodayCase(){
     currentCompany = getTodayCompany();
     currentCut = getTodayCut(currentCompany);
-    document.getElementById("case-name").textContent = currentCompany.name;
-    document.getElementById("case-category").textContent = currentCompany.category;
-    document.getElementById("case-pricing").textContent = currentCompany.pricing;
-    document.getElementById("case-revenue").textContent = currentCompany.revenue;
-    document.getElementById("case-features").textContent = currentCompany.features;
-    document.getElementById("case-issue").textContent = currentCompany.recentIssue;
-    document.getElementById("case-cut").textContent = currentCut;
+    document.getElementById("case-name").textContent = T(currentCompany.name);
+    document.getElementById("case-category").textContent = T(currentCompany.category);
+    document.getElementById("case-pricing").textContent = T(currentCompany.pricing);
+    document.getElementById("case-revenue").textContent = T(currentCompany.revenue);
+    document.getElementById("case-features").textContent = T(currentCompany.features);
+    document.getElementById("case-issue").textContent = T(currentCompany.recentIssue);
+    document.getElementById("case-cut").textContent = T(currentCut);
     const srcEl = document.getElementById("case-sources");
-    srcEl.innerHTML = "출처: " + currentCompany.sources.map(s=>`<a href="${s.url}" target="_blank" rel="noopener">${s.title}</a>`).join(", ");
+    srcEl.innerHTML = T("출처: ") + currentCompany.sources.map(s=>`<a href="${s.url}" target="_blank" rel="noopener">${s.title}</a>`).join(", ");
   }
 
   document.getElementById("btn-share-case").addEventListener("click", async (e)=>{
-    const text = `오늘의 역기획 — ${currentCompany.name}\n"${currentCut}"\n\nhttps://reverseengineeringstudyapp.vercel.app`;
+    const text = `${T("오늘의 역기획 — {0}", T(currentCompany.name))}\n"${T(currentCut)}"\n\nhttps://reverseengineeringstudyapp.vercel.app`;
     const btn = e.currentTarget;
     const original = btn.textContent;
     if(navigator.share){
@@ -160,10 +160,10 @@
     }
     try{
       await navigator.clipboard.writeText(text);
-      btn.textContent = "복사됐어요!";
+      btn.textContent = T("복사됐어요!");
       setTimeout(()=>{ btn.textContent = original; }, 1500);
     }catch(e){
-      btn.textContent = "복사에 실패했어요";
+      btn.textContent = T("복사에 실패했어요");
       setTimeout(()=>{ btn.textContent = original; }, 1500);
     }
   });
@@ -183,30 +183,30 @@
       const errBody = await res.text().catch(()=> "");
       let readable = errBody.slice(0,200);
       try{ readable = JSON.parse(errBody).error.message; }catch(e){}
-      if(res.status === 400) readable = "API 키가 올바르지 않아요. 다시 확인해주세요.";
+      if(res.status === 400) readable = T("API 키가 올바르지 않아요. 다시 확인해주세요.");
       throw new Error(readable);
     }
     const data = await res.json();
     const parts = data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts;
-    if(!parts) throw new Error("응답을 이해하지 못했어요.");
+    if(!parts) throw new Error(T("응답을 이해하지 못했어요."));
     return parts.map(p=>p.text||"").join("");
   }
 
   function buildFeedbackPrompt(company, cut, hypothesis, proposal){
-    const system = "당신은 PM/서비스기획 면접관입니다. 지원자가 실제 기업 사례를 분석한 내용을 읽습니다. " +
-      "절대로 정답이나 평가를 먼저 제시하지 마세요. 대신 지원자의 논리에서 가장 약한 지점이나 더 파고들 만한 지점을 짚어, " +
-      "되묻는 질문을 1~2개만 하세요. 존댓말을 쓰고, 친절하지만 날카롭게. 3~5문장 이내로 짧게 답하세요.";
-    const user =
-`기업: ${company.name} (${company.category})
-가격 정책: ${company.pricing}
-수익 구조: ${company.revenue}
-주요 기능: ${company.features}
-최근 이슈: ${company.recentIssue}
-
-오늘의 질문: ${cut}
-
-지원자의 가설(왜 이렇게 설계했을까): ${hypothesis || "(작성 안 함)"}
-지원자의 제안(어떻게 바꾸겠는가): ${proposal || "(작성 안 함)"}`;
+    const system = T("당신은 PM/서비스기획 면접관입니다. 지원자가 실제 기업 사례를 분석한 내용을 읽습니다. 절대로 정답이나 평가를 먼저 제시하지 마세요. 대신 지원자의 논리에서 가장 약한 지점이나 더 파고들 만한 지점을 짚어, 되묻는 질문을 1~2개만 하세요. 존댓말을 쓰고, 친절하지만 날카롭게. 3~5문장 이내로 짧게 답하세요.");
+    const blank = T("(작성 안 함)");
+    const user = [
+      T("기업: {0} ({1})", T(company.name), T(company.category)),
+      T("가격 정책: {0}", T(company.pricing)),
+      T("수익 구조: {0}", T(company.revenue)),
+      T("주요 기능: {0}", T(company.features)),
+      T("최근 이슈: {0}", T(company.recentIssue)),
+      "",
+      T("오늘의 질문: {0}", T(cut)),
+      "",
+      T("지원자의 가설(왜 이렇게 설계했을까): {0}", hypothesis || blank),
+      T("지원자의 제안(어떻게 바꾸겠는가): {0}", proposal || blank)
+    ].join("\n");
     return { system, user };
   }
 
@@ -224,20 +224,20 @@
     const feedbackText = document.getElementById("feedback-text");
 
     if(!hypothesis && !proposal){
-      showStatus(statusEl, "가설이나 제안 중 하나는 적어주세요.", true);
+      showStatus(statusEl, T("가설이나 제안 중 하나는 적어주세요."), true);
       return;
     }
     const apiKey = localStorage.getItem(LS.apiKey);
     if(!apiKey){
       switchTab("settings");
-      showStatus(document.getElementById("settings-status"), "AI 피드백을 받으려면 Gemini API 키를 먼저 등록해주세요.", true);
+      showStatus(document.getElementById("settings-status"), T("AI 피드백을 받으려면 Gemini API 키를 먼저 등록해주세요."), true);
       return;
     }
 
     const btn = document.getElementById("btn-feedback");
     btn.disabled = true;
     const originalLabel = btn.textContent;
-    btn.textContent = "생각하는 중...";
+    btn.textContent = T("생각하는 중...");
     statusEl.hidden = true;
 
     try{
@@ -246,7 +246,7 @@
       feedbackText.textContent = reply;
       feedbackBox.hidden = false;
     }catch(err){
-      showStatus(statusEl, "피드백을 받지 못했어요: " + err.message, true);
+      showStatus(statusEl, T("피드백을 받지 못했어요: {0}", err.message), true);
     }finally{
       btn.disabled = false;
       btn.textContent = originalLabel;
@@ -261,7 +261,7 @@
     const statusEl = document.getElementById("note-status");
 
     if(!hypothesis && !proposal){
-      showStatus(statusEl, "저장할 내용이 없어요.", true);
+      showStatus(statusEl, T("저장할 내용이 없어요."), true);
       return;
     }
 
@@ -279,12 +279,12 @@
     document.getElementById("note-hypothesis").value = "";
     document.getElementById("note-proposal").value = "";
     feedbackBox.hidden = true;
-    showStatus(statusEl, "포트폴리오에 저장했어요.", false);
+    showStatus(statusEl, T("포트폴리오에 저장했어요."), false);
   });
 
   // ---------- 포트폴리오 ----------
   function exportMarkdown(item){
-    return `# ${item.companyName} — ${item.date}\n\n**오늘의 질문**: ${item.cut}\n\n**가설**: ${item.hypothesis || "-"}\n\n**제안**: ${item.proposal || "-"}\n\n**AI 피드백**: ${item.feedback || "-"}\n`;
+    return `# ${T(item.companyName)} — ${item.date}\n\n${T("**오늘의 질문**")}: ${T(item.cut)}\n\n${T("**가설**")}: ${item.hypothesis || "-"}\n\n${T("**제안**")}: ${item.proposal || "-"}\n\n${T("**AI 피드백**")}: ${item.feedback || "-"}\n`;
   }
 
   function downloadTextFile(filename, text){
@@ -302,7 +302,7 @@
   document.getElementById("btn-export-all").addEventListener("click", ()=>{
     const list = getPortfolio();
     const combined = list.map(exportMarkdown).join("\n---\n\n");
-    downloadTextFile("오늘의역기획_포트폴리오.md", combined);
+    downloadTextFile(T("오늘의역기획_포트폴리오.md"), combined);
   });
 
   function renderPortfolio(){
@@ -319,25 +319,25 @@
     }
     emptyEl.hidden = true;
     toolbarEl.hidden = false;
-    document.getElementById("portfolio-count").textContent = `${list.length}개 저장됨`;
+    document.getElementById("portfolio-count").textContent = T("{0}개 저장됨", list.length);
 
     list.forEach(item=>{
       const div = document.createElement("div");
       div.className = "portfolio-item";
       const snippet = [item.hypothesis, item.proposal].filter(Boolean).join(" / ").slice(0,140);
       div.innerHTML = `
-        <div class="meta"><span>${item.date}</span><span>${item.companyCategory}</span></div>
-        <h3>${item.companyName}</h3>
-        <p class="snippet">${snippet || "(내용 없음)"}</p>
+        <div class="meta"><span>${item.date}</span><span>${T(item.companyCategory)}</span></div>
+        <h3>${T(item.companyName)}</h3>
+        <p class="snippet">${snippet || T("(내용 없음)")}</p>
         <div class="actions">
-          <button type="button" data-action="export">내보내기(복사)</button>
-          <button type="button" data-action="delete">삭제</button>
+          <button type="button" data-action="export">${T("내보내기(복사)")}</button>
+          <button type="button" data-action="delete">${T("삭제")}</button>
         </div>
       `;
       div.querySelector('[data-action="export"]').addEventListener("click", (e)=>{
         navigator.clipboard.writeText(exportMarkdown(item)).then(()=>{
-          e.target.textContent = "복사됨!";
-          setTimeout(()=>{ e.target.textContent = "내보내기(복사)"; }, 1500);
+          e.target.textContent = T("복사됨!");
+          setTimeout(()=>{ e.target.textContent = T("내보내기(복사)"); }, 1500);
         });
       });
       div.querySelector('[data-action="delete"]').addEventListener("click", ()=>{
@@ -366,14 +366,14 @@
     const statusEl = document.getElementById("interest-status");
 
     if(!email && !message && !selectedPriceReaction){
-      showStatus(statusEl, "이메일, 한마디, 가격 반응 중 하나는 남겨주세요.", true);
+      showStatus(statusEl, T("이메일, 한마디, 가격 반응 중 하나는 남겨주세요."), true);
       return;
     }
 
     const btn = document.getElementById("btn-interest-submit");
     btn.disabled = true;
     const original = btn.textContent;
-    btn.textContent = "보내는 중...";
+    btn.textContent = T("보내는 중...");
 
     try{
       const res = await fetch("/api/feedback", {
@@ -381,14 +381,14 @@
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ type: "pricing_interest", email, message, price: selectedPriceReaction })
       });
-      if(!res.ok) throw new Error("전송 실패 (" + res.status + ")");
-      showStatus(statusEl, "감사해요! 의견 잘 받았어요.", false);
+      if(!res.ok) throw new Error(T("전송 실패 ({0})", res.status));
+      showStatus(statusEl, T("감사해요! 의견 잘 받았어요."), false);
       document.getElementById("interest-email").value = "";
       document.getElementById("interest-message").value = "";
       document.querySelectorAll("#interest-price-choices .choice").forEach(b=>b.classList.remove("selected"));
       selectedPriceReaction = null;
     }catch(err){
-      showStatus(statusEl, "전송하지 못했어요: " + err.message, true);
+      showStatus(statusEl, T("전송하지 못했어요: {0}", err.message), true);
     }finally{
       btn.disabled = false;
       btn.textContent = original;
@@ -436,7 +436,7 @@
     const key = document.getElementById("settings-apikey-input").value.trim();
     if(key) localStorage.setItem(LS.apiKey, key);
     else localStorage.removeItem(LS.apiKey);
-    showStatus(document.getElementById("settings-status"), "저장했어요.", false);
+    showStatus(document.getElementById("settings-status"), T("저장했어요."), false);
     renderNokeyBanner();
   });
 
@@ -459,14 +459,14 @@
     const statusEl = document.getElementById("general-feedback-status");
 
     if(!message){
-      showStatus(statusEl, "내용을 적어주세요.", true);
+      showStatus(statusEl, T("내용을 적어주세요."), true);
       return;
     }
 
     const btn = document.getElementById("btn-general-feedback-submit");
     btn.disabled = true;
     const original = btn.textContent;
-    btn.textContent = "보내는 중...";
+    btn.textContent = T("보내는 중...");
 
     try{
       const res = await fetch("/api/feedback", {
@@ -474,13 +474,13 @@
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ type: "general_feedback", email, message })
       });
-      if(!res.ok) throw new Error("전송 실패 (" + res.status + ")");
-      showStatus(statusEl, "감사해요! 꼼꼼히 읽어볼게요.", false);
+      if(!res.ok) throw new Error(T("전송 실패 ({0})", res.status));
+      showStatus(statusEl, T("감사해요! 꼼꼼히 읽어볼게요."), false);
       document.getElementById("general-feedback-text").value = "";
       document.getElementById("general-feedback-email").value = "";
       setTimeout(closeFeedbackPanel, 1200);
     }catch(err){
-      showStatus(statusEl, "전송하지 못했어요: " + err.message, true);
+      showStatus(statusEl, T("전송하지 못했어요: {0}", err.message), true);
     }finally{
       btn.disabled = false;
       btn.textContent = original;

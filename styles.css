@@ -400,3 +400,10 @@ body{font-family:var(--font-ui); letter-spacing:-.011em; font-kerning:normal; te
 :lang(en){word-break:normal; letter-spacing:-.005em;}
 h1,h2,h3{text-wrap:balance;}
 p,li{text-wrap:pretty;}
+
+/* ---------- 언어 전환 (i18n.js가 [data-lang-host]에 넣는다) ---------- */
+.lang-float{position:fixed; left:12px; bottom:12px; z-index:60;}
+.lang-switch{display:inline-flex; gap:2px; padding:3px; border:1px solid var(--line); border-radius:999px; background:var(--card); box-shadow:0 2px 8px rgba(0,0,0,.08);}
+.lang-switch button{font:inherit; font-size:.78rem; font-weight:700; color:var(--ink-soft); background:none; border:0; border-radius:999px; padding:4px 9px; cursor:pointer; min-height:28px;}
+.lang-switch button.active{background:var(--accent); color:#fff;}
+.lang-switch button:focus-visible{outline:2px solid var(--accent); outline-offset:1px;}
