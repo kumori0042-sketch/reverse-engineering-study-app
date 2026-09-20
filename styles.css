@@ -1,9 +1,10 @@
 :root{
+  --font-ui:"Pretendard Variable",Pretendard,"Noto Sans KR","Noto Sans JP","Hiragino Sans","Yu Gothic",system-ui,sans-serif;
   --paper:#F2F4F6;
   --card:#FFFFFF;
   --ink:#191F28;
   --ink-soft:#4E5968;
-  --ink-faint:#8B95A1;
+  --ink-faint:#6B7684;
   --line:#E5E8EB;
   --accent:#3182F6;
   --accent-ink:#1B64DA;
@@ -23,7 +24,7 @@
     --card:#1F222A;
     --ink:#F2F4F6;
     --ink-soft:#B0B8C1;
-    --ink-faint:#6B7684;
+    --ink-faint:#8B95A1;
     --line:#2E3138;
     --accent:#4593FC;
     --accent-ink:#7EB2FF;
@@ -39,7 +40,7 @@
   --card:#1F222A;
   --ink:#F2F4F6;
   --ink-soft:#B0B8C1;
-  --ink-faint:#6B7684;
+  --ink-faint:#8B95A1;
   --line:#2E3138;
   --accent:#4593FC;
   --accent-ink:#7EB2FF;
@@ -56,7 +57,7 @@ body{
   margin:0;
   background:var(--paper);
   color:var(--ink);
-  font-family:"Gothic A1","Noto Sans KR",system-ui,sans-serif;
+  font-family:var(--font-ui);
   font-weight:400;
   line-height:1.65;
   -webkit-font-smoothing:antialiased;
@@ -392,3 +393,10 @@ hr{border:none; border-top:1px solid var(--line); margin:22px 0;}
   padding:4px;
   line-height:1;
 }
+
+/* ================= 한국어 가독성 (Pretendard 통일 · 줄바꿈 · 대비) ================= */
+body{font-family:var(--font-ui); letter-spacing:-.011em; font-kerning:normal; text-rendering:optimizeLegibility;}
+:lang(ja){word-break:normal; line-break:strict; letter-spacing:0;}
+:lang(en){word-break:normal; letter-spacing:-.005em;}
+h1,h2,h3{text-wrap:balance;}
+p,li{text-wrap:pretty;}
