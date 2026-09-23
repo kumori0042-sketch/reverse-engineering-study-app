@@ -3,6 +3,10 @@
 PM/서비스기획 취준생을 위한 매일 반복형 역기획 학습 앱. 검증된 기업 케이스 하나 + 분석 노트 + AI의 되묻는 피드백.
 
 **🔗 Live: [reverseengineeringstudyapp.vercel.app](https://reverseengineeringstudyapp.vercel.app)**
+
+**日本語**: PM・サービス企画職を志望する人向けの、毎日3分のリバースエンジニアリング学習アプリ。検証済みの企業ケースをひとつ、分析ノート、そしてAIが答えではなく問いを返すフィードバックが毎日届きます。AIキー(Google Gemini, BYOK)はユーザー自身のものをブラウザにのみ保存します。ja/en 対応。
+
+**English**: A daily 3-minute reverse-engineering habit app for aspiring PMs. Each day: one verified company case, a short analysis note, and AI feedback that asks questions back instead of giving answers. Uses your own Google Gemini API key (BYOK), stored only in your browser. Available in Japanese and English too.
 **📝 Maker story: [Disquiet 포스트](https://disquiet.io/products/0f22c5c3-7692-448e-85d8-485b7a8598f0)**
 **📓 Case study: [8일의 기록 — 시장조사부터 반응 0건까지](https://claude.ai/code/artifact/5db5e871-4dd1-40d7-bfb0-1e003d6f33b6)**
 
